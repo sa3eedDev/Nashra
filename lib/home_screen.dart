@@ -116,6 +116,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // Start a new timer for 5 seconds
       _inactivityTimer = Timer(const Duration(seconds: 5), () {
         if (mounted && !_showScoreboard) {
+          // Dismiss keyboard before showing scoreboard
+          FocusScope.of(context).unfocus();
+          
           setState(() {
             _showScoreboard = true;
           });
@@ -388,6 +391,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    // Dismiss keyboard when in scoreboard mode
+    if (_showScoreboard) {
+      FocusScope.of(context).unfocus();
+    }
+    
     return Scaffold(
       body: GestureDetector(
         // Dismiss keyboard when tapping outside input fields
@@ -874,6 +882,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget _buildQuickAddButton(int points, bool isTeamOne) {
     return InkWell(
       onTap: () {
+        // Dismiss keyboard when adding score with quick buttons
+        FocusScope.of(context).unfocus();
+        
         setState(() {
           // First round is now over
           _isFirstRound = false;
