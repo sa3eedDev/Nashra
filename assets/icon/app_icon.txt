@@ -1,0 +1,9 @@
+# App Icon Placeholder
+# 
+# For a real app, you would need to generate proper app icons for different platforms
+# You can use tools like:
+# - flutter_launcher_icons package
+# - https://appicon.co/
+# - https://www.figma.com/ (for designing icons)
+#
+# This is just a placeholder file to indicate where app icons should be placed. 
