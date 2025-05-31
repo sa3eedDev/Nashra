@@ -33,6 +33,11 @@ class BalootCounterApp extends StatelessWidget {
     return MaterialApp(
       title: 'Baloot Counter',
       debugShowCheckedModeBanner: false,
+      debugShowMaterialGrid: false,
+      showPerformanceOverlay: false,
+      showSemanticsDebugger: false,
+      checkerboardRasterCacheImages: false,
+      checkerboardOffscreenLayers: false,
       theme: AppTheme.themeData,
       home: const HomeScreen(),
     );

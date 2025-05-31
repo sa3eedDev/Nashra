@@ -18,6 +18,9 @@ class AppTheme {
   static const Color surfaceA40 = Color(0xFF505050); // Light gray
   static const Color surfaceA50 = Color(0xFF696969); // Very light gray
   
+  // Scoreboard mode colors
+  static const Color scoreboardBackground = Colors.black; // Pure black for OLED screens
+  
   // Field colors inspired by the image
   static const Color fieldBackground = Color(0xFFFFF8E9); // Cream background
   static const Color fieldBorder = Color(0xFF787878);    // Gray border

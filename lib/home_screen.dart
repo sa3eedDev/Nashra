@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:async';
 import 'utils/number_utils.dart';
 import 'theme/app_theme.dart';
 import 'icon_demo.dart';
+import 'scoreboard_overlay.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -12,7 +14,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   // Team scores
   int teamOneScore = 0;
   int teamTwoScore = 0;
@@ -39,14 +41,34 @@ class _HomeScreenState extends State<HomeScreen> {
   
   // Maximum score to win
   final int maxScore = 152;
+  
+  // Inactivity timer
+  Timer? _inactivityTimer;
+  
+  // Scoreboard mode flag
+  bool _showScoreboard = false;
+  
+  // First round flag
+  bool _isFirstRound = true;
 
   @override
   void initState() {
     super.initState();
     
+    // Register observer for app lifecycle changes
+    WidgetsBinding.instance.addObserver(this);
+    
     // Add listeners to text controllers to handle auto-focus and auto-add
     teamOneController.addListener(_handleTeamOneInputChange);
     teamTwoController.addListener(_handleTeamTwoInputChange);
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Reset timer when app comes back to foreground
+    if (state == AppLifecycleState.resumed) {
+      _resetInactivityTimer();
+    }
   }
 
   // Handle input changes for Team One
@@ -58,6 +80,9 @@ class _HomeScreenState extends State<HomeScreen> {
     
     // If both fields have values, add points automatically
     _checkAndAddPoints();
+    
+    // Reset inactivity timer on user input
+    _resetInactivityTimer();
   }
   
   // Handle input changes for Team Two
@@ -69,6 +94,9 @@ class _HomeScreenState extends State<HomeScreen> {
     
     // If both fields have values, add points automatically
     _checkAndAddPoints();
+    
+    // Reset inactivity timer on user input
+    _resetInactivityTimer();
   }
   
   // Check if both fields have values and add points
@@ -77,9 +105,48 @@ class _HomeScreenState extends State<HomeScreen> {
       addScore();
     }
   }
+  
+  // Reset inactivity timer
+  void _resetInactivityTimer() {
+    // Cancel existing timer if any
+    _inactivityTimer?.cancel();
+    
+    // Only start timer after first round
+    if (!_isFirstRound) {
+      // Start a new timer for 5 seconds
+      _inactivityTimer = Timer(const Duration(seconds: 5), () {
+        if (mounted && !_showScoreboard) {
+          setState(() {
+            _showScoreboard = true;
+          });
+        }
+      });
+    }
+    
+    // If we're in scoreboard mode, exit it
+    if (_showScoreboard) {
+      setState(() {
+        _showScoreboard = false;
+      });
+    }
+  }
+  
+  // Exit scoreboard mode
+  void _exitScoreboardMode() {
+    setState(() {
+      _showScoreboard = false;
+    });
+    _resetInactivityTimer();
+  }
 
   @override
   void dispose() {
+    // Cancel timer
+    _inactivityTimer?.cancel();
+    
+    // Remove observer
+    WidgetsBinding.instance.removeObserver(this);
+    
     teamOneController.removeListener(_handleTeamOneInputChange);
     teamTwoController.removeListener(_handleTeamTwoInputChange);
     teamOneController.dispose();
@@ -104,6 +171,9 @@ class _HomeScreenState extends State<HomeScreen> {
     
     if (scoreOne != null && scoreTwo != null) {
       setState(() {
+        // First round is now over
+        _isFirstRound = false;
+        
         // Add to history
         teamOneHistory.add(scoreOne);
         teamTwoHistory.add(scoreTwo);
@@ -120,6 +190,9 @@ class _HomeScreenState extends State<HomeScreen> {
         teamOneController.clear();
         teamTwoController.clear();
       });
+      
+      // Reset inactivity timer after score is added
+      _resetInactivityTimer();
       
       // Check for winner
       checkForWinner();
@@ -281,7 +354,12 @@ class _HomeScreenState extends State<HomeScreen> {
       roundTwo = 0;
       teamOneController.clear();
       teamTwoController.clear();
+      _isFirstRound = true;
+      _showScoreboard = false;
     });
+    
+    // Cancel inactivity timer since we're back to first round
+    _inactivityTimer?.cancel();
   }
   
   // Undo last move
@@ -296,7 +374,15 @@ class _HomeScreenState extends State<HomeScreen> {
         
         if (lastScoreOne > 0) roundOne--;
         if (lastScoreTwo > 0) roundTwo--;
+        
+        // If we've undone all moves, we're back to first round
+        if (teamOneHistory.isEmpty && teamTwoHistory.isEmpty) {
+          _isFirstRound = true;
+        }
       });
+      
+      // Reset inactivity timer after undo
+      _resetInactivityTimer();
     }
   }
 
@@ -307,38 +393,53 @@ class _HomeScreenState extends State<HomeScreen> {
         // Dismiss keyboard when tapping outside input fields
         onTap: () {
           FocusScope.of(context).unfocus();
+          _resetInactivityTimer();
         },
         // Ensure the gesture detector doesn't block any child interactions
         behavior: HitTestBehavior.translucent,
-        child: Container(
-          color: AppTheme.surfaceA0,
-          child: SafeArea(
-            child: Column(
-              children: [
-                // Score header
-                buildScoreHeader(),
-                
-                // Main content
-                Expanded(
-                  child: Row(
-                    children: [
-                      // Team Two Column (لهم)
-                      Expanded(child: buildTeamColumn(false)),
-                      
-                      // Middle Column with buttons
-                      buildMiddleColumn(),
-                      
-                      // Team One Column (لنا)
-                      Expanded(child: buildTeamColumn(true)),
-                    ],
-                  ),
+        child: Stack(
+          children: [
+            Container(
+              color: AppTheme.surfaceA0,
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    // Score header
+                    buildScoreHeader(),
+                    
+                    // Main content
+                    Expanded(
+                      child: Row(
+                        children: [
+                          // Team Two Column (لهم)
+                          Expanded(child: buildTeamColumn(false)),
+                          
+                          // Middle Column with buttons
+                          buildMiddleColumn(),
+                          
+                          // Team One Column (لنا)
+                          Expanded(child: buildTeamColumn(true)),
+                        ],
+                      ),
+                    ),
+                    
+                    // Bottom row with quick-add buttons for each team
+                    buildBottomRow(),
+                  ],
                 ),
-                
-                // Bottom row with quick-add buttons for each team
-                buildBottomRow(),
-              ],
+              ),
             ),
-          ),
+            
+            // Scoreboard overlay (only shown when _showScoreboard is true)
+            if (_showScoreboard)
+              ScoreboardOverlay(
+                teamOneScore: teamOneScore,
+                teamTwoScore: teamTwoScore,
+                teamOneName: teamOneName,
+                teamTwoName: teamTwoName,
+                onTap: _exitScoreboardMode,
+              ),
+          ],
         ),
       ),
     );
@@ -774,6 +875,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return InkWell(
       onTap: () {
         setState(() {
+          // First round is now over
+          _isFirstRound = false;
+          
           if (isTeamOne) {
             // Add points to Team One
             teamOneScore += points;
@@ -794,6 +898,9 @@ class _HomeScreenState extends State<HomeScreen> {
           // Check for winner after adding points
           checkForWinner();
         });
+        
+        // Reset inactivity timer after adding points
+        _resetInactivityTimer();
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
