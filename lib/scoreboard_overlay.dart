@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'theme/app_theme.dart';
 
@@ -7,6 +8,7 @@ class ScoreboardOverlay extends StatelessWidget {
   final int teamTwoScore;
   final String teamOneName;
   final String teamTwoName;
+  final String gameTime;
   final VoidCallback onTap;
 
   const ScoreboardOverlay({
@@ -15,6 +17,7 @@ class ScoreboardOverlay extends StatelessWidget {
     required this.teamTwoScore,
     required this.teamOneName,
     required this.teamTwoName,
+    required this.gameTime,
     required this.onTap,
   }) : super(key: key);
 
@@ -22,6 +25,13 @@ class ScoreboardOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     // Get screen size to calculate proper dimensions
     final screenSize = MediaQuery.of(context).size;
+    
+    // Ensure status bar is visible with light icons when overlay is shown
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light, // Light icons for dark overlay
+      statusBarBrightness: Brightness.dark, // Dark mode for iOS
+    ));
     
     return GestureDetector(
       onTap: onTap,
@@ -79,12 +89,29 @@ class ScoreboardOverlay extends StatelessWidget {
                                   ),
                                 ),
                                 
-                                // Vertical divider
-                                Container(
-                                  height: 120,
-                                  width: 2,
-                                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                                  color: AppTheme.primaryA30.withOpacity(0.5),
+                                // Middle section with game timer
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.surfaceA20.withOpacity(0.7),
+                                        border: Border.all(color: AppTheme.primaryA0.withOpacity(0.5), width: 2),
+                                        borderRadius: BorderRadius.circular(40),
+                                      ),
+                                      child: Text(
+                                        gameTime,
+                                        style: GoogleFonts.notoSansArabic(
+                                          textStyle: const TextStyle(
+                                            color: AppTheme.primaryA0,
+                                            fontSize: 28,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 
                                 // Team Two Score (will appear on left for opposite player)
@@ -191,12 +218,29 @@ class ScoreboardOverlay extends StatelessWidget {
                                 ),
                               ),
                               
-                              // Vertical divider
-                              Container(
-                                height: 120,
-                                width: 2,
-                                margin: const EdgeInsets.symmetric(horizontal: 16),
-                                color: AppTheme.primaryA30.withOpacity(0.5),
+                              // Middle section with game timer
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.surfaceA20.withOpacity(0.7),
+                                      border: Border.all(color: AppTheme.primaryA0.withOpacity(0.5), width: 2),
+                                      borderRadius: BorderRadius.circular(40),
+                                    ),
+                                    child: Text(
+                                      gameTime,
+                                      style: GoogleFonts.notoSansArabic(
+                                        textStyle: const TextStyle(
+                                          color: AppTheme.primaryA0,
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               
                               // Team Two Score (on left for Arabic layout)

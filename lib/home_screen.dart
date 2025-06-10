@@ -45,6 +45,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   // Inactivity timer
   Timer? _inactivityTimer;
   
+  // Game timer
+  Timer? _gameTimer;
+  int _gameTimeInSeconds = 0;
+  String _formattedGameTime = "00:00";
+  bool _isGameTimerRunning = false;
+  
   // Scoreboard mode flag
   bool _showScoreboard = false;
   
@@ -61,6 +67,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // Add listeners to text controllers to handle auto-focus and auto-add
     teamOneController.addListener(_handleTeamOneInputChange);
     teamTwoController.addListener(_handleTeamTwoInputChange);
+    
+    // Initialize formatted game time
+    _updateFormattedGameTime();
   }
   
   @override
@@ -69,6 +78,37 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       _resetInactivityTimer();
     }
+  }
+
+  // Start the game timer
+  void _startGameTimer() {
+    if (!_isGameTimerRunning) {
+      print("Starting game timer");
+      _isGameTimerRunning = true;
+      _gameTimer?.cancel(); // Cancel any existing timer first
+      _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (mounted) {
+          setState(() {
+            _gameTimeInSeconds++;
+            _updateFormattedGameTime();
+            print("Timer tick: $_formattedGameTime");
+          });
+        }
+      });
+    }
+  }
+  
+  // Stop the game timer
+  void _stopGameTimer() {
+    _gameTimer?.cancel();
+    _isGameTimerRunning = false;
+  }
+  
+  // Update the formatted game time string
+  void _updateFormattedGameTime() {
+    int minutes = _gameTimeInSeconds ~/ 60;
+    int seconds = _gameTimeInSeconds % 60;
+    _formattedGameTime = '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
   // Handle input changes for Team One
@@ -144,8 +184,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    // Cancel timer
+    // Cancel timers
     _inactivityTimer?.cancel();
+    _gameTimer?.cancel();
     
     // Remove observer
     WidgetsBinding.instance.removeObserver(this);
@@ -173,6 +214,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final int? scoreTwo = int.tryParse(teamTwoText);
     
     if (scoreOne != null && scoreTwo != null) {
+      // Start game timer if this is the first round
+      if (_isFirstRound) {
+        print("First round - starting timer");
+        // Start the timer outside setState to ensure it runs
+        Future.microtask(() => _startGameTimer());
+      }
+      
       setState(() {
         // First round is now over
         _isFirstRound = false;
@@ -205,6 +253,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   // Check if any team has won
   void checkForWinner() {
     if (teamOneScore >= maxScore || teamTwoScore >= maxScore) {
+      // Stop the game timer when a team wins
+      _stopGameTimer();
+      
       String winner;
       
       // If both teams passed 152, the winner is the one with higher points
@@ -224,7 +275,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         builder: (context) => AlertDialog(
           backgroundColor: AppTheme.surfaceA10,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(40),
           ),
           title: Text(
             'انتهت اللعبة!',
@@ -244,7 +295,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceA20,
-                  borderRadius: BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(40),
                 ),
                 child: Text(
                   '$winner فاز باللعبة!',
@@ -283,6 +334,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                 ],
               ),
+              const SizedBox(height: 12),
+              Text(
+                'وقت اللعبة: $_formattedGameTime',
+                style: GoogleFonts.notoSansArabic(
+                  textStyle: const TextStyle(
+                    color: AppTheme.primaryA30,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
             ],
           ),
           actions: [
@@ -295,7 +356,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     backgroundColor: AppTheme.surfaceA30,
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(40),
                     ),
                   ),
                   onPressed: () {
@@ -319,7 +380,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     backgroundColor: AppTheme.primaryA0,
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(40),
                     ),
                   ),
                   onPressed: () {
@@ -359,6 +420,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       teamTwoController.clear();
       _isFirstRound = true;
       _showScoreboard = false;
+      
+      // Reset game timer
+      _stopGameTimer();
+      _gameTimeInSeconds = 0;
+      _formattedGameTime = "00:00";
     });
     
     // Cancel inactivity timer since we're back to first round
@@ -381,6 +447,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         // If we've undone all moves, we're back to first round
         if (teamOneHistory.isEmpty && teamTwoHistory.isEmpty) {
           _isFirstRound = true;
+          _stopGameTimer();
+          _gameTimeInSeconds = 0;
+          _formattedGameTime = "00:00";
         }
       });
       
@@ -397,6 +466,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
     
     return Scaffold(
+      backgroundColor: AppTheme.surfaceA0,
       body: GestureDetector(
         // Dismiss keyboard when tapping outside input fields
         onTap: () {
@@ -407,16 +477,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         behavior: HitTestBehavior.translucent,
         child: Stack(
           children: [
-            Container(
-              color: AppTheme.surfaceA0,
-              child: SafeArea(
-                child: Column(
-                  children: [
-                    // Score header
-                    buildScoreHeader(),
-                    
-                    // Main content
-                    Expanded(
+            SafeArea(
+              child: Column(
+                children: [
+                  // Score header
+                  buildScoreHeader(),
+                  
+                  // Main content
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
                       child: Row(
                         children: [
                           // Team Two Column (لهم)
@@ -430,11 +500,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         ],
                       ),
                     ),
-                    
-                    // Bottom row with quick-add buttons for each team
-                    buildBottomRow(),
-                  ],
-                ),
+                  ),
+                  
+                  // Bottom row with quick-add buttons for each team
+                  buildBottomRow(),
+                ],
               ),
             ),
             
@@ -445,6 +515,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 teamTwoScore: teamTwoScore,
                 teamOneName: teamOneName,
                 teamTwoName: teamTwoName,
+                gameTime: _formattedGameTime,
                 onTap: _exitScoreboardMode,
               ),
           ],
@@ -455,75 +526,98 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   
   // Score header widget
   Widget buildScoreHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceA10,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Team Two Column (لهم) - Left side
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 12),
-              child: Column(
-                children: [
-                  Text(
-                    teamTwoName,
-                    style: GoogleFonts.notoSansArabic(
-                      textStyle: const TextStyle(
-                        color: AppTheme.primaryA0,
-                        fontSize: 50,
-                        fontWeight: FontWeight.w700,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceA10,
+          borderRadius: BorderRadius.circular(40),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Team Two Column (لهم) - Left side
+            Expanded(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 12),
+                child: Column(
+                  children: [
+                    Text(
+                      teamTwoName,
+                      style: GoogleFonts.notoSansArabic(
+                        textStyle: const TextStyle(
+                          color: AppTheme.primaryA0,
+                          fontSize: 50,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
-                  ),
-                  Text(
-                    teamTwoScore.toString(),
-                    style: AppTheme.scoreTextStyle,
-                  ),
-                ],
+                    Text(
+                      teamTwoScore.toString(),
+                      style: AppTheme.scoreTextStyle,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          
-          // Middle space for buttons - same width as middle column
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.15,
-          ),
-          
-          // Team One Column (لنا) - Right side
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 12),
-              child: Column(
-                children: [
-                  Text(
-                    teamOneName,
-                    style: GoogleFonts.notoSansArabic(
-                      textStyle: const TextStyle(
-                        color: AppTheme.primaryA0,
-                        fontSize: 50,
-                        fontWeight: FontWeight.w700,
-                      ),
+            
+            // Middle section with game timer
+            if (!_isFirstRound)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceA20,
+                  borderRadius: BorderRadius.circular(40),
+                  border: Border.all(
+                    color: AppTheme.primaryA0.withOpacity(0.3),
+                    width: 2,
+                  ),
+                ),
+                child: Text(
+                  _formattedGameTime,
+                  style: GoogleFonts.notoSansArabic(
+                    textStyle: const TextStyle(
+                      color: AppTheme.primaryA0,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  Text(
-                    teamOneScore.toString(),
-                    style: AppTheme.scoreTextStyle,
-                  ),
-                ],
+                ),
+              ),
+            
+            // Team One Column (لنا) - Right side
+            Expanded(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 12),
+                child: Column(
+                  children: [
+                    Text(
+                      teamOneName,
+                      style: GoogleFonts.notoSansArabic(
+                        textStyle: const TextStyle(
+                          color: AppTheme.primaryA0,
+                          fontSize: 50,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      teamOneScore.toString(),
+                      style: AppTheme.scoreTextStyle,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -534,13 +628,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final focusNode = isTeamOne ? teamOneFocus : teamTwoFocus;
     final history = isTeamOne ? teamOneHistory : teamTwoHistory;
     final otherHistory = isTeamOne ? teamTwoHistory : teamOneHistory;
-    final score = isTeamOne ? teamOneScore : teamTwoScore;
     
     return Container(
       margin: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppTheme.fieldBackground,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(40),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -558,7 +651,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             decoration: BoxDecoration(
               color: AppTheme.fieldBackground,
               border: Border.all(color: AppTheme.fieldBorder, width: 1.5),
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(40),
             ),
             child: TextField(
               controller: controller,
@@ -592,35 +685,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: history.length + 1,
+                itemCount: history.length,
                 itemBuilder: (context, index) {
-                  // Show current total at the bottom
-                  if (index == history.length) {
-                    return Column(
-                      children: [
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppTheme.scoreBackground,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            score.toString(),
-                            style: GoogleFonts.notoSansArabic(
-                              textStyle: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.surfaceA0,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                      ],
-                    );
-                  }
-                  
                   // Show history items
                   final historyIndex = history.length - 1 - index;
                   
@@ -637,7 +703,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                         decoration: isHigherScore ? BoxDecoration(
                           color: AppTheme.scoreBackground,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(40),
                         ) : null,
                         child: Text(
                           history[historyIndex].toString(),
@@ -746,6 +812,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 context: context,
                 builder: (context) => AlertDialog(
                   backgroundColor: AppTheme.surfaceA10,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(40),
+                  ),
                   title: Text(
                     'الإعدادات',
                     textAlign: TextAlign.center,
@@ -765,7 +834,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           backgroundColor: AppTheme.primaryA0,
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(40),
                           ),
                         ),
                         onPressed: () {
@@ -789,7 +858,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           backgroundColor: AppTheme.surfaceA30,
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(40),
                           ),
                         ),
                         onPressed: () {
@@ -826,54 +895,58 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   
   // Bottom row with quick-add buttons for each team
   Widget buildBottomRow() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceA20,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 4,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Team Two (لهم) quick-add buttons
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildQuickAddButton(2, false),
-                _buildQuickAddButton(4, false),
-                _buildQuickAddButton(16, false),
-                _buildQuickAddButton(26, false),
-              ],
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceA20,
+          borderRadius: BorderRadius.circular(40),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
             ),
-          ),
-          
-          // Divider
-          Container(
-            height: 40,
-            width: 1,
-            color: AppTheme.surfaceA40,
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-          ),
-          
-          // Team One (لنا) quick-add buttons
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildQuickAddButton(2, true),
-                _buildQuickAddButton(4, true),
-                _buildQuickAddButton(16, true),
-                _buildQuickAddButton(26, true),
-              ],
+          ],
+        ),
+        child: Row(
+          children: [
+            // Team Two (لهم) quick-add buttons
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildQuickAddButton(2, false),
+                  _buildQuickAddButton(4, false),
+                  _buildQuickAddButton(16, false),
+                  _buildQuickAddButton(26, false),
+                ],
+              ),
             ),
-          ),
-        ],
+            
+            // Divider
+            Container(
+              height: 40,
+              width: 1,
+              color: AppTheme.surfaceA40,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+            ),
+            
+            // Team One (لنا) quick-add buttons
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildQuickAddButton(2, true),
+                  _buildQuickAddButton(4, true),
+                  _buildQuickAddButton(16, true),
+                  _buildQuickAddButton(26, true),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -884,6 +957,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       onTap: () {
         // Dismiss keyboard when adding score with quick buttons
         FocusScope.of(context).unfocus();
+        
+        // Start game timer if this is the first round
+        if (_isFirstRound) {
+          print("First round (quick add) - starting timer");
+          Future.microtask(() => _startGameTimer());
+        }
         
         setState(() {
           // First round is now over
@@ -917,7 +996,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
           color: isTeamOne ? AppTheme.primaryA0 : AppTheme.surfaceA30,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(40),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.2),

@@ -6,17 +6,11 @@ import 'theme/app_theme.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Set preferred orientations
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-  
   // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
+      statusBarIconBrightness: Brightness.dark, // Dark icons for light status bar
       systemNavigationBarColor: AppTheme.surfaceA0,
       systemNavigationBarIconBrightness: Brightness.light,
     ),
