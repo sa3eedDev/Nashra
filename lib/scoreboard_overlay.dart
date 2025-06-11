@@ -59,13 +59,13 @@ class ScoreboardOverlay extends StatelessWidget {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                // Team One Score (will appear on right for opposite player)
+                                // Team Two Score (on left for Arabic layout - matching header)
                                 Expanded(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        teamOneName, // Swapped: this used to be teamTwoName
+                                        teamTwoName,
                                         style: GoogleFonts.notoSansArabic(
                                           textStyle: const TextStyle(
                                             color: AppTheme.primaryA0,
@@ -76,7 +76,7 @@ class ScoreboardOverlay extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        teamOneScore.toString(), // Swapped: this used to be teamTwoScore
+                                        teamTwoScore.toString(),
                                         style: GoogleFonts.notoSansArabic(
                                           textStyle: const TextStyle(
                                             color: AppTheme.primaryA0,
@@ -114,13 +114,13 @@ class ScoreboardOverlay extends StatelessWidget {
                                   ],
                                 ),
                                 
-                                // Team Two Score (will appear on left for opposite player)
+                                // Team One Score (on right for Arabic layout - matching header)
                                 Expanded(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        teamTwoName, // Swapped: this used to be teamOneName
+                                        teamOneName,
                                         style: GoogleFonts.notoSansArabic(
                                           textStyle: const TextStyle(
                                             color: AppTheme.primaryA0,
@@ -131,7 +131,7 @@ class ScoreboardOverlay extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        teamTwoScore.toString(), // Swapped: this used to be teamOneScore
+                                        teamOneScore.toString(),
                                         style: GoogleFonts.notoSansArabic(
                                           textStyle: const TextStyle(
                                             color: AppTheme.primaryA0,
@@ -188,13 +188,13 @@ class ScoreboardOverlay extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              // Team One Score (on right for Arabic layout)
+                              // Team Two Score (on left for Arabic layout - matching header)
                               Expanded(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      teamOneName,
+                                      teamTwoName,
                                       style: GoogleFonts.notoSansArabic(
                                         textStyle: const TextStyle(
                                           color: AppTheme.primaryA0,
@@ -205,7 +205,7 @@ class ScoreboardOverlay extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 8),
                                     Text(
-                                      teamOneScore.toString(),
+                                      teamTwoScore.toString(),
                                       style: GoogleFonts.notoSansArabic(
                                         textStyle: const TextStyle(
                                           color: AppTheme.primaryA0,
@@ -243,13 +243,13 @@ class ScoreboardOverlay extends StatelessWidget {
                                 ],
                               ),
                               
-                              // Team Two Score (on left for Arabic layout)
+                              // Team One Score (on right for Arabic layout - matching header)
                               Expanded(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      teamTwoName,
+                                      teamOneName,
                                       style: GoogleFonts.notoSansArabic(
                                         textStyle: const TextStyle(
                                           color: AppTheme.primaryA0,
@@ -260,7 +260,7 @@ class ScoreboardOverlay extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 8),
                                     Text(
-                                      teamTwoScore.toString(),
+                                      teamOneScore.toString(),
                                       style: GoogleFonts.notoSansArabic(
                                         textStyle: const TextStyle(
                                           color: AppTheme.primaryA0,
