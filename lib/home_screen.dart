@@ -377,23 +377,46 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 // New game button
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryA0,
+                    backgroundColor: Colors.transparent,
+                    foregroundColor: AppTheme.surfaceA0,
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(40),
                     ),
+                  ).copyWith(
+                    backgroundColor: MaterialStateProperty.all(Colors.transparent),
+                    overlayColor: MaterialStateProperty.all(Colors.transparent),
                   ),
                   onPressed: () {
                     resetGame();
                     Navigator.pop(context);
                   },
-                  child: Text(
-                    'لعبة جديدة',
-                    style: GoogleFonts.notoSansArabic(
-                      textStyle: const TextStyle(
-                        color: AppTheme.surfaceA0,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFFFCD303), // #FCD303 - brightest yellow
+                          Color(0xFFF9C200), // #F9C200
+                          Color(0xFFF4B100), // #F4B100
+                          Color(0xFFEFA000), // #EFA000
+                          Color(0xFFEA8F00), // #EA8F00 - darkest orange
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(40),
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      child: Text(
+                        'لعبة جديدة',
+                        style: GoogleFonts.notoSansArabic(
+                          textStyle: const TextStyle(
+                            color: AppTheme.surfaceA0,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -761,11 +784,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ),
         ),
         
-        // Submit button
+        // Submit button with gradient
         Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppTheme.primaryA0,
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFFCD303), // #FCD303 - brightest yellow
+                Color(0xFFF9C200), // #F9C200
+                Color(0xFFF4B100), // #F4B100
+                Color(0xFFEFA000), // #EFA000
+                Color(0xFFEA8F00), // #EA8F00 - darkest orange
+              ],
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.3),
@@ -831,23 +864,46 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     children: [
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryA0,
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: AppTheme.surfaceA0,
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(40),
                           ),
+                        ).copyWith(
+                          backgroundColor: MaterialStateProperty.all(Colors.transparent),
+                          overlayColor: MaterialStateProperty.all(Colors.transparent),
                         ),
                         onPressed: () {
                           resetGame();
                           Navigator.pop(context);
                         },
-                        child: Text(
-                          'لعبة جديدة',
-                          style: GoogleFonts.notoSansArabic(
-                            textStyle: const TextStyle(
-                              color: AppTheme.surfaceA0,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0xFFFCD303), // #FCD303 - brightest yellow
+                                Color(0xFFF9C200), // #F9C200
+                                Color(0xFFF4B100), // #F4B100
+                                Color(0xFFEFA000), // #EFA000
+                                Color(0xFFEA8F00), // #EA8F00 - darkest orange
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(40),
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            child: Text(
+                              'لعبة جديدة',
+                              style: GoogleFonts.notoSansArabic(
+                                textStyle: const TextStyle(
+                                  color: AppTheme.surfaceA0,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -995,7 +1051,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
-          color: isTeamOne ? AppTheme.primaryA0 : AppTheme.surfaceA30,
+          color: isTeamOne ? null : AppTheme.surfaceA30,
+          gradient: isTeamOne ? const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFFCD303), // #FCD303 - brightest yellow
+              Color(0xFFF9C200), // #F9C200
+              Color(0xFFF4B100), // #F4B100
+              Color(0xFFEFA000), // #EFA000
+              Color(0xFFEA8F00), // #EA8F00 - darkest orange
+            ],
+          ) : null,
           borderRadius: BorderRadius.circular(40),
           boxShadow: [
             BoxShadow(
