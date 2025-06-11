@@ -25,7 +25,7 @@ class BalootCounterApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Baloot Counter',
+      title: 'نشرة',
       debugShowCheckedModeBanner: false,
       debugShowMaterialGrid: false,
       showPerformanceOverlay: false,

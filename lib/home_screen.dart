@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 import 'utils/number_utils.dart';
 import 'theme/app_theme.dart';
-import 'icon_demo.dart';
 import 'scoreboard_overlay.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -904,35 +903,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.surfaceA30,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(40),
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                          // Navigate to the icon demo page
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => IconDemoPage(),
-                            ),
-                          );
-                        },
-                        child: Text(
-                          'عرض أيقونة التطبيق',
-                          style: GoogleFonts.notoSansArabic(
-                            textStyle: const TextStyle(
-                              color: AppTheme.primaryA10,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
